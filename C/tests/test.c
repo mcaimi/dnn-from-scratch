@@ -1,4 +1,5 @@
 #include "linear_layer.h"
+#include "sigmoid_layer.h"
 
 // TEST BENCH
 int main(int argc, char **argv) {
@@ -6,8 +7,13 @@ int main(int argc, char **argv) {
   linear *first;
   first = linearCreate(8, 8, 0.000004);
 
+  // allocate a sigmoid
+  sigmoid *sig;
+  sig = sigmoidCreate(8);
+
   // display linear info
   linearInfo(first);
+  sigmoidInfo(sig);
 
   // display weight matrix
   printf("%s\n", "---- WEIGHTS MATRIX ----");
@@ -63,6 +69,11 @@ int main(int argc, char **argv) {
     printf("%f\n", out[i]);
   }
 
+  printf("%s\n", "---> Passing values to Sigmoid Layer:");
+  sigmoidFeedIn(sig, out);
+  printf("%s\n", "---> Forward pass (sigmoid)...");
+  double *sigout = sigmoidFeedForward(sig);
+
   printf("%s\n", "---> Allocating random gradient vector...");
   double *grad = randomVector(8);
   double *updated_grad;
@@ -78,9 +89,18 @@ int main(int argc, char **argv) {
   for (unsigned int i=0; i < first->output_dimensions; i++) {
     printf("%f\n", updated_grad[i]);
   }
+  printf("%s\n", "---> Displaying Sigmoid BackPropagation");
+  updated_grad = sigmoidBackPropagation(sig, updated_grad);
+  for (unsigned int i=0; i < sig->output_dimensions; i++) {
+    printf("%f\n", updated_grad[i]);
+  }
+
 
   // free resources
   linearFree(first);
   linearFree(loaded);
+  sigmoidFree(sig);
   free(in);
+  free(grad);
+  free(updated_grad);
 }
