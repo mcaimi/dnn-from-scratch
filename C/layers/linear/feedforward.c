@@ -1,12 +1,12 @@
 #include "linear_layer.h"
 #include "common.h"
 
-void layerFeedIn(neuron *n, double *input) {
-  // copy input values into the neuron's own input buffer
+void linearFeedIn(linear *n, double *input) {
+  // copy input values into the linear's own input buffer
   copyVectors(input, n->inputs, n->input_dimensions);
 }
 
-double *forwardMultiplication(neuron *n) {
+double *linearFeedForward(linear *n) {
   // multiply weights matrix and input vector
   for (unsigned int o=0; o<n->output_dimensions; o++) {
     for (unsigned int i=0; i<n->input_dimensions; i++) {

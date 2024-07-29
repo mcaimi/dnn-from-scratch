@@ -1,6 +1,6 @@
 #include "common.h"
 
-struct __neuron_t {
+struct __linear_t {
   // layer input and output dimensions
   unsigned int input_dimensions;
   unsigned int output_dimensions;
@@ -16,28 +16,28 @@ struct __neuron_t {
   // learning rate
   double learning_rate;
 };
-typedef struct __neuron_t neuron;
+typedef struct __linear_t linear;
 
-// create new neuron
-neuron *neuronCreate(unsigned int, unsigned int, double);
-// free neuron
-void neuronFree(neuron *);
+// create new linear
+linear *linearCreate(unsigned int, unsigned int, double);
+// free linear
+void linearFree(linear *);
 // display info
-void neuronInfo(neuron *);
+void linearInfo(linear *);
 
 // set learning rate
-void neuronSetLR(neuron *, double);
-// save neuron checkpoint
-void neuronSaveCheckpoint(neuron *, char *);
-// load neuron checkpoint
-neuron *neuronLoadCheckpoint(char *);
+void linearSetLR(linear *, double);
+// save linear checkpoint
+void linearSaveCheckpoint(linear *, char *);
+// load linear checkpoint
+linear *linearLoadCheckpoint(char *);
 
-// set input values into the neuron layer
-void layerFeedIn(neuron *, double *);
+// set input values into the linear layer
+void linearFeedIn(linear *, double *);
 
 // feed-forward matrix multiplication
-double *forwardMultiplication(neuron *);
+double *linearFeedForward(linear *);
 
 // gradient descent
-double *gradientDescent(neuron *, double *);
+double *linearBackPropagation(linear *, double *);
 

@@ -2,12 +2,12 @@
 
 // TEST BENCH
 int main(int argc, char **argv) {
-  // Allocate a neuron
-  neuron *first;
-  first = neuronCreate(8, 8, 0.000004);
+  // Allocate a linear
+  linear *first;
+  first = linearCreate(8, 8, 0.000004);
 
-  // display neuron info
-  neuronInfo(first);
+  // display linear info
+  linearInfo(first);
 
   // display weight matrix
   printf("%s\n", "---- WEIGHTS MATRIX ----");
@@ -18,15 +18,15 @@ int main(int argc, char **argv) {
     printf("%f\n", first->bias[i]);
   }
 
-  // save neuron checkpoint
-  neuronSaveCheckpoint(first, "neuronckpt.bin");
+  // save linear checkpoint
+  linearSaveCheckpoint(first, "linearckpt.bin");
 
-  // allocate a new neuron and load checkpoint from file
-  neuron *loaded;
-  loaded = neuronLoadCheckpoint("neuronckpt.bin");
+  // allocate a new linear and load checkpoint from file
+  linear *loaded;
+  loaded = linearLoadCheckpoint("linearckpt.bin");
 
-  // display neuron info
-  neuronInfo(loaded);
+  // display linear info
+  linearInfo(loaded);
 
   // display weight matrix
   printf("%s\n", "---- WEIGHTS MATRIX ----");
@@ -36,8 +36,8 @@ int main(int argc, char **argv) {
     printf("%f\n", loaded->bias[i]);
   }
 
-  // save neuron checkpoint
-  neuronSaveCheckpoint(loaded, "neuronckpt1.bin");
+  // save linear checkpoint
+  linearSaveCheckpoint(loaded, "linearckpt1.bin");
 
   // sanity check between original and disk-loaded checkpoints...
   printf("(Weights Matrix) Memory check: %d\n", compareWeightsBuffers(first->weights_matrix, loaded->weights_matrix, first->input_dimensions, first->output_dimensions));
@@ -53,10 +53,10 @@ int main(int argc, char **argv) {
     printf("%f\n", in[i]);
   }
   printf("%s\n", "---> Feeding input vector to the network...");
-  layerFeedIn(first, in);
+  linearFeedIn(first, in);
 
   printf("%s\n", "---> Forward pass (matrixMultiplication)...");
-  double *out = forwardMultiplication(first);
+  double *out = linearFeedForward(first);
 
   printf("%s\n", "---> Computed Output Values:");
   for (unsigned int i=0; i < first->output_dimensions; i++) {
@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 
   printf("%s\n", "---> Displaying Weight Matrix Before Gradient Descent...");
   displayWeights(first->weights_matrix, first->input_dimensions, first->output_dimensions);
-  updated_grad = gradientDescent(first, grad);
+  updated_grad = linearBackPropagation(first, grad);
   printf("%s\n", "---> Displaying Weight Matrix After Gradient Descent...");
   displayWeights(first->weights_matrix, first->input_dimensions, first->output_dimensions);
   for (unsigned int i=0; i < first->output_dimensions; i++) {
@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
   }
 
   // free resources
-  neuronFree(first);
-  neuronFree(loaded);
+  linearFree(first);
+  linearFree(loaded);
   free(in);
 }

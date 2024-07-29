@@ -1,7 +1,7 @@
 #include "linear_layer.h"
 #include "common.h"
 
-double *gradientDescent(neuron *n, double *gradient) {
+double *linearBackPropagation(linear *n, double *gradient) {
   // updated gradients vector
   double *updated_grads;
   updated_grads = constantVector(n->output_dimensions, 0);

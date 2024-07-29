@@ -1,29 +1,29 @@
 #include "linear_layer.h"
 
-// allocate dynamic memory for a neuron
-int __neuronMemAllocate(neuron *n) {
+// allocate dynamic memory for a linear layer
+int __linearMemAllocate(linear *n) {
   n->inputs = (double *)malloc(n->input_dimensions * sizeof(double));
   n->outputs = (double *)malloc(n->output_dimensions * sizeof(double));
   n->weights_matrix = randomMatrix(n->input_dimensions, n->output_dimensions);
   if (!n->inputs || !n->outputs || !n->weights_matrix) {
-    neuronFree(n);
+    linearFree(n);
     return 1;
   }
 
   // generate random bias vector
   n->bias = randomVector(n->output_dimensions);
   if (!n->bias) {
-    neuronFree(n);
+    linearFree(n);
     return 1;
   }
 
   return 0;
 }
 
-// create new neuron
-neuron *neuronCreate(unsigned int inputs, unsigned int outputs, double learning_rate) {
-  neuron *temp;
-  temp = (neuron *)malloc(sizeof(struct __neuron_t));
+// create new linear layer
+linear *linearCreate(unsigned int inputs, unsigned int outputs, double learning_rate) {
+  linear *temp;
+  temp = (linear *)malloc(sizeof(struct __linear_t));
   if (!temp) return NULL;
 
   // initialize
@@ -31,7 +31,7 @@ neuron *neuronCreate(unsigned int inputs, unsigned int outputs, double learning_
   temp->output_dimensions = outputs;
 
   // sane defaults
-  if (__neuronMemAllocate(temp) > 0) {
+  if (__linearMemAllocate(temp) > 0) {
     return NULL;
   }
 
@@ -42,14 +42,14 @@ neuron *neuronCreate(unsigned int inputs, unsigned int outputs, double learning_
   memset(temp->inputs, 0, temp->input_dimensions * sizeof(double));
 
   // set learning rate
-  neuronSetLR(temp, learning_rate);
+  linearSetLR(temp, learning_rate);
 
-  // return neuron
+  // return linear layer
   return temp;
 }
 
-// free neuron
-void neuronFree(neuron *n) {
+// free linear layer
+void linearFree(linear *n) {
   if (n != NULL) {
     // free memory...
     if (n->inputs) {
@@ -70,21 +70,21 @@ void neuronFree(neuron *n) {
       free(n->bias);
     }
 
-    // destroy neuron
+    // destroy linear layer
     free(n);
   }
 }
 
-// dump neuron info
-void neuronInfo(neuron *n) {
-  printf("Neuron Layer Configuration:\n\tInput Size: %d\n\tOutput Size: %d\n\tWeights Matrix: %lu bytes @ 0x%lX\n\tBias Vector: %lu bytes @ 0x%lX\n",
+// dump linear layer info
+void linearInfo(linear *n) {
+  printf("Linear Layer Configuration:\n\tInput Size: %d\n\tOutput Size: %d\n\tWeights Matrix: %lu bytes @ 0x%lX\n\tBias Vector: %lu bytes @ 0x%lX\n",
       n->input_dimensions, n->output_dimensions, (n->input_dimensions*n->output_dimensions*sizeof(double)), (unsigned long)(n->weights_matrix),
       (n->output_dimensions*sizeof(double)), (unsigned long)(n->bias));
   printf("Learning Rate: %f\n", n->learning_rate);
 }
 
-// set learning rate for this neuron layer
-void neuronSetLR(neuron *n, double lr) {
+// set learning rate for this linear layer
+void linearSetLR(linear *n, double lr) {
   if (lr < 0) {
     n->learning_rate = 0;
   } else {
@@ -92,8 +92,8 @@ void neuronSetLR(neuron *n, double lr) {
   }
 }
 
-// save the current neuron state in a persistent checkpoint file
-void neuronSaveCheckpoint(neuron *n, char *filename) {
+// save the current linear state in a persistent checkpoint file
+void linearSaveCheckpoint(linear *n, char *filename) {
   FILE *saveFileDesc;
 
   // open file for writing...
@@ -103,7 +103,7 @@ void neuronSaveCheckpoint(neuron *n, char *filename) {
     return;
   }
 
-  // 1 - save neuron structure
+  // 1 - save linear structure
   printf("%s", "Saving structure...\n");
   fwrite(&n->input_dimensions, sizeof(unsigned int), 1, saveFileDesc);
   fwrite(&n->output_dimensions, sizeof(unsigned int), 1, saveFileDesc);
@@ -127,10 +127,10 @@ void neuronSaveCheckpoint(neuron *n, char *filename) {
   printf("Checkpoint [%s] Saved\n", filename);
 }
 
-// create a new neuron layer loading data from a checkpoint
-neuron *neuronLoadCheckpoint(char *filename) {
+// create a new linear layer loading data from a checkpoint
+linear *linearLoadCheckpoint(char *filename) {
   FILE *loadFileDesc;
-  neuron *temp;
+  linear *temp;
 
   // open checkpoint file for reading
   printf("Loading checkpoint [%s]...\n", filename);
@@ -140,9 +140,9 @@ neuron *neuronLoadCheckpoint(char *filename) {
     return NULL;
   }
 
-  // 1 - load neuron structure
-  printf("Allocating and loading neuron structure...\n");
-  temp = (neuron *)malloc(sizeof(struct __neuron_t));
+  // 1 - load linear structure
+  printf("Allocating and loading linear structure...\n");
+  temp = (linear *)malloc(sizeof(struct __linear_t));
   fread(&temp->input_dimensions, sizeof(unsigned int), 1, loadFileDesc);
   fread(&temp->output_dimensions, sizeof(unsigned int), 1, loadFileDesc);
   fread(&temp->learning_rate, sizeof(double), 1, loadFileDesc);

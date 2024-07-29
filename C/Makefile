@@ -16,4 +16,4 @@ bin:
 	$(CC) -o build/test build/test.o build/common.o build/layer.o build/feedforward.o build/backpropagate.o
 
 clean:
-	@rm -Rf build neuronckpt*.bin
+	@rm -Rf build linearckpt*.bin
