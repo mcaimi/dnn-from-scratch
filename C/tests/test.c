@@ -1,5 +1,4 @@
-#include "neuron_layer.h"
-#include "feedforward.h"
+#include "linear_layer.h"
 
 // TEST BENCH
 int main(int argc, char **argv) {
@@ -57,11 +56,27 @@ int main(int argc, char **argv) {
   layerFeedIn(first, in);
 
   printf("%s\n", "---> Forward pass (matrixMultiplication)...");
-  double *out = matrixMultiplication(first);
+  double *out = forwardMultiplication(first);
 
   printf("%s\n", "---> Computed Output Values:");
   for (unsigned int i=0; i < first->output_dimensions; i++) {
     printf("%f\n", out[i]);
+  }
+
+  printf("%s\n", "---> Allocating random gradient vector...");
+  double *grad = randomVector(8);
+  double *updated_grad;
+  for (unsigned int i=0; i < first->output_dimensions; i++) {
+    printf("%f\n", grad[i]);
+  }
+
+  printf("%s\n", "---> Displaying Weight Matrix Before Gradient Descent...");
+  displayWeights(first->weights_matrix, first->input_dimensions, first->output_dimensions);
+  updated_grad = gradientDescent(first, grad);
+  printf("%s\n", "---> Displaying Weight Matrix After Gradient Descent...");
+  displayWeights(first->weights_matrix, first->input_dimensions, first->output_dimensions);
+  for (unsigned int i=0; i < first->output_dimensions; i++) {
+    printf("%f\n", updated_grad[i]);
   }
 
   // free resources

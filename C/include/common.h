@@ -15,6 +15,9 @@ double *randomVector(unsigned int);
 // initialize a constant vector
 double *constantVector(unsigned int, double);
 
+// copy vector contents
+void copyVectors(double *, double *, unsigned int);
+
 // compare weights buffers
 int compareWeightsBuffers(double **, double **, unsigned int, unsigned int);
 

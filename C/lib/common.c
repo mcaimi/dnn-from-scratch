@@ -53,6 +53,14 @@ double *constantVector(unsigned int dim, double const_val) {
 
 }
 
+// copy vectors
+void copyVectors(double *src, double *dst, unsigned int size) {
+  // copy values from src to dst
+  for (unsigned int i=0; i<size; i++) {
+    dst[i] = src[i];
+  }
+}
+
 // compare weight buffers
 int compareWeightsBuffers(double **buffer_a, double **buffer_b, unsigned int x_dim, unsigned int y_dim) {
   int equals = TRUE;
