@@ -35,9 +35,7 @@ linear *linearCreate(unsigned int inputs, unsigned int outputs, double learning_
     return NULL;
   }
 
-  // allocate buffers for input and output
-  temp->inputs = (double *)malloc(temp->input_dimensions * sizeof(double));
-  temp->outputs = (double *)malloc(temp->output_dimensions * sizeof(double));
+  // zero buffers for input and output
   memset(temp->outputs, 0, temp->output_dimensions * sizeof(double));
   memset(temp->inputs, 0, temp->input_dimensions * sizeof(double));
 
