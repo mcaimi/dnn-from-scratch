@@ -1,4 +1,4 @@
-#include "neuron_layer.h"
+#include "linear_layer.h"
 
 // allocate dynamic memory for a neuron
 int __neuronMemAllocate(neuron *n) {
@@ -34,6 +34,13 @@ neuron *neuronCreate(unsigned int inputs, unsigned int outputs, double learning_
   if (__neuronMemAllocate(temp) > 0) {
     return NULL;
   }
+
+  // allocate buffers for input and output
+  temp->inputs = (double *)malloc(temp->input_dimensions * sizeof(double));
+  temp->outputs = (double *)malloc(temp->output_dimensions * sizeof(double));
+  memset(temp->outputs, 0, temp->output_dimensions * sizeof(double));
+  memset(temp->inputs, 0, temp->input_dimensions * sizeof(double));
+
   // set learning rate
   neuronSetLR(temp, learning_rate);
 
