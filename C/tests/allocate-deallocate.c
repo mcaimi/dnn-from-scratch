@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "common.h"
 #include "linear_layer.h"
 #include "sigmoid_layer.h"
 
@@ -16,6 +17,12 @@ struct {
                    { .input = 256, .output = 10, .lr = 0.00004 } };
 
 int main(int argc, char **argv) {
+  if (IS_LE) {
+    printf("Machine is Little Endian\n");
+  } else {
+    printf("Machine is Big Endian\n");
+  }
+
   linear *l_test;
   sigmoid *s_test;
 

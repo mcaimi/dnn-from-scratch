@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "mnist.h"
 #include "linear_layer.h"
 #include "sigmoid_layer.h"
 
@@ -22,6 +23,12 @@ typedef struct __classifier_model_t classifier;
 
 // declare model parameters
 classifier *c;
+
+// dataset
+mnist_index *train_labels;
+mnist_index *test_labels;
+mnist_data *train_data;
+mnist_data *test_data;
 
 // create a new model instance
 classifier *newModel(unsigned int input, unsigned int h_dim, unsigned int output) {
