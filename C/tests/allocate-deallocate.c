@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
    printf("-= [Linear Layer] %s [%d] =-\n", "Running case ", i);
    l_test = (linear *)linearCreate(test_cases[i].input, test_cases[i].output, test_cases[i].lr);
    linearInfo(l_test);
+   displayWeights(l_test->weights_matrix, test_cases[i].input, test_cases[i].output);
    linearFree(l_test);
  }
 

@@ -24,5 +24,11 @@ int main(int argc, char **argv) {
     printf("Error loading data file");
     exit(-1);
   }
+
+  // get a sample
+  double *sample = mnistIndexData(arc4random()%test_data->n_items, test_data, 0);
+  displaySample(sample, test_data);
+
+  free(sample);
   mnistFreeData(test_data);
 }
