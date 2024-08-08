@@ -8,6 +8,9 @@ struct __sigmoid_t {
   // input and output values
   double *inputs;
   double *outputs;
+
+  // backpropagation
+  double *gradient;
 };
 typedef struct __sigmoid_t sigmoid;
 

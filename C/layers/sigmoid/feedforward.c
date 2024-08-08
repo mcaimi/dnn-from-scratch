@@ -10,7 +10,8 @@ void sigmoidFeedIn(sigmoid *n, double *input) {
 double *sigmoidFeedForward(sigmoid *n) {
   // calculate sigmoid
   for (unsigned int o=0; o<n->output_dimensions; o++) {
-    n->outputs[o] = 1.0f / (1.0f + exp(-n->inputs[o]));
+    // sigmoid => S(x) = 1/(1+e^(-x)), compress input between 0 and 1
+    n->outputs[o] = 1.0f / (1.0f + exp(-(n->inputs[o])));
   }
 
   // return values
