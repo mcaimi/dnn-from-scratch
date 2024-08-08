@@ -4,14 +4,15 @@
 int __linearMemAllocate(linear *n) {
   n->inputs = (double *)malloc(n->input_dimensions * sizeof(double));
   n->outputs = (double *)malloc(n->output_dimensions * sizeof(double));
+  n->gradient = (double *)malloc(n->output_dimensions * sizeof(double));
   n->weights_matrix = randomMatrix(n->input_dimensions, n->output_dimensions);
-  if (!n->inputs || !n->outputs || !n->weights_matrix) {
+  if (!n->inputs || !n->outputs || !n->weights_matrix || !n->gradient) {
     linearFree(n);
     return 1;
   }
 
   // generate random bias vector
-  n->bias = randomVector(n->output_dimensions);
+  n->bias = constantVector(n->output_dimensions, 0.0f);
   if (!n->bias) {
     linearFree(n);
     return 1;
@@ -37,6 +38,7 @@ linear *linearCreate(unsigned int inputs, unsigned int outputs, double learning_
 
   // zero buffers for input and output
   memset(temp->outputs, 0, temp->output_dimensions * sizeof(double));
+  memset(temp->gradient, 0, temp->output_dimensions * sizeof(double));
   memset(temp->inputs, 0, temp->input_dimensions * sizeof(double));
 
   // set learning rate
@@ -55,6 +57,9 @@ void linearFree(linear *n) {
     }
     if (n->outputs) {
       free(n->outputs);
+    }
+    if (n->gradient) {
+      free(n->gradient);
     }
 
     // free weights matrix

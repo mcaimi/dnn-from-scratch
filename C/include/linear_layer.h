@@ -13,6 +13,9 @@ struct __linear_t {
   double **weights_matrix;
   double *bias;
 
+  // backpropagation
+  double *gradient;
+
   // learning rate
   double learning_rate;
 };
