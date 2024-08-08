@@ -29,7 +29,7 @@ double *randomVector(unsigned int dim) {
 
   // fill vector with random numbers
   for (unsigned int i=0; i < dim; i++) {
-      double pl = (double)((double)arc4random()/(double)RAND_MAX);
+      double pl = (double)((double)arc4random()/(double)UINT32_MAX) *2 - 1;
       placeholder[i] = pl;
   }
 
@@ -93,7 +93,7 @@ void displayWeights(double **buffer, unsigned int x_dim, unsigned int y_dim) {
   for (unsigned int y=0; y < y_dim; y++) {
     printf("| %d |", y);
     for (unsigned int x=0; x < x_dim; x++) {
-      printf(" %f |", indexWeightsMatrix(buffer, x, y));
+      printf(" %e |", indexWeightsMatrix(buffer, x, y));
     }
     printf("\n");
   }

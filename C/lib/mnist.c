@@ -2,6 +2,9 @@
 #include "common.h"
 #include <time.h>
 
+// ascii shades
+const char *shades = " .'`^\",:;Il!i><~+_-?][}{1)(\\|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@";
+
 // swap 32 bit integer bytes
 uint32_t byteSwap(uint32_t value) {
   uint32_t temp = 0x00000000;
@@ -134,3 +137,39 @@ void mnistFreeData(mnist_data *item) {
 
   free(item);
 }
+
+// get an image from the training dataset
+double *mnistIndexData(unsigned int idx, mnist_data *dataset, int normalize) {
+  double *datapoint = NULL;
+  uint8_t sample;
+
+  // allocate memory...
+  unsigned int num_pixels = dataset->n_rows * dataset->n_cols;
+  datapoint = constantVector(num_pixels, 0.0f);
+  if (!datapoint) return NULL;
+
+  // index the dataset and return a datapoint
+  for (unsigned int pixel=0; pixel < num_pixels; pixel++) {
+    // cast uint8 to double
+    sample = (dataset->data[idx])[pixel];
+    if (normalize) {
+      datapoint[pixel] = (double)(sample)/256.0;
+    } else {
+      datapoint[pixel] = (double)(sample);
+    }
+  }
+
+  // return it
+  return datapoint;
+}
+
+// display sample
+void displaySample(double *sample, mnist_data *dataset) {
+  for (unsigned int r=0; r<dataset->n_rows; r++) {
+    for (unsigned int c=0; c<dataset->n_cols; c++) {
+      printf("%c", shades[(uint8_t)(sample[r*dataset->n_cols + c]) % (sizeof(shades)/sizeof(shades[0]))]);
+    }
+    printf("\n");
+  }
+}
+

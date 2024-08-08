@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <float.h>
 
 #define TRUE 1
 #define FALSE 0

@@ -42,3 +42,9 @@ mnist_data *mnistLoadData(char *);
 // free resources
 void mnistFreeIndex(mnist_index *);
 void mnistFreeData(mnist_data *);
+
+// index resources
+double *mnistIndexData(unsigned int, mnist_data *, int);
+
+// display sample
+void displaySample(double *, mnist_data *);
