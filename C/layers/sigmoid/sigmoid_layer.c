@@ -4,8 +4,7 @@
 int __sigmoidMemAllocate(sigmoid *n) {
   n->inputs = (double *)malloc(n->input_dimensions * sizeof(double));
   n->outputs = (double *)malloc(n->output_dimensions * sizeof(double));
-  n->gradient = (double *)malloc(n->output_dimensions * sizeof(double));
-  if (!n->inputs || !n->outputs || !n->gradient) {
+  if (!n->inputs || !n->outputs) {
     sigmoidFree(n);
     return 1;
   }
@@ -30,7 +29,6 @@ sigmoid *sigmoidCreate(unsigned int dimensions) {
 
   // zero buffers for input and output
   memset(temp->outputs, 0, temp->output_dimensions * sizeof(double));
-  memset(temp->gradient, 0, temp->output_dimensions * sizeof(double));
   memset(temp->inputs, 0, temp->input_dimensions * sizeof(double));
 
   // return sigmoid layer
@@ -46,9 +44,6 @@ void sigmoidFree(sigmoid *n) {
     }
     if (n->outputs) {
       free(n->outputs);
-    }
-    if (n->gradient) {
-      free(n->gradient);
     }
 
     // destroy sigmoid layer
