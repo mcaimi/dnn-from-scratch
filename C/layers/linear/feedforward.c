@@ -9,11 +9,12 @@ void linearFeedIn(linear *n, double *input) {
 double *linearFeedForward(linear *n) {
   // multiply weights matrix and input vector
   for (unsigned int o=0; o<n->output_dimensions; o++) {
+    double accumulator = 0.0f;
     for (unsigned int i=0; i<n->input_dimensions; i++) {
-      n->outputs[o] += indexWeightsMatrix(n->weights_matrix, i, o) * n->inputs[i];
+      accumulator += (indexWeightsMatrix(n->weights_matrix, i, o) * n->inputs[i]);
     }
     // add bias
-    n->outputs[o] += n->bias[o];
+    n->outputs[o] = accumulator + n->bias[o];
   }
 
   // return values
