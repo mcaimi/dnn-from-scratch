@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "mnist.h"
 #include "linear_layer.h"
-#include "sigmoid_layer.h"
+#include "leakyrelu_layer.h"
 #include <sys/time.h>
 #include <assert.h>
 
@@ -9,23 +9,21 @@
 struct __classifier_model_t {
   // linear input layer
   linear *input;
-  // input sigmoid layer
-  sigmoid *s_input;
   // hidden layer
   linear *hidden;
-  // hidden sigmoid layer
-  sigmoid *s_hidden;
   // output layer
   linear *output;
-  // out sigmoid layer
-  sigmoid *s_out;
+  // out leakyrelu layer
+  leakyrelu *s_out;
 };
 typedef struct __classifier_model_t classifier;
 
 // parameters
 #define EPOCHS 10
+#define HIDDEN_DIMENSIONS 128
 #define OUTPUT_DIMENSIONS 10
-#define HIDDEN_MULTIPLIER 2
+#define ALPHA 0.1
+#define LR 0.004
 
 // declare model parameters
 classifier *c;
@@ -46,21 +44,17 @@ classifier *newModel(unsigned int input, unsigned int h_dim, unsigned int output
   classifier *temp = (struct __classifier_model_t *)malloc(sizeof(struct __classifier_model_t));
 
   // add layers
-  temp->input = linearCreate(input, h_dim, 0.00004);
-  temp->s_input = sigmoidCreate(h_dim);
-  temp->hidden = linearCreate(h_dim, h_dim, 0.00004);
-  temp->s_hidden = sigmoidCreate(h_dim);
-  temp->output = linearCreate(h_dim, output, 0.00004);
-  temp->s_out = sigmoidCreate(output);
+  temp->input = linearCreate(input, h_dim, LR);
+  temp->hidden = linearCreate(h_dim, h_dim, LR);
+  temp->output = linearCreate(h_dim, output, LR);
+  temp->s_out = leakyreluCreate(output, ALPHA);
 
   // display network structure
   printf("Neural Network Structure:\n");
   linearInfo(temp->input);
-  sigmoidInfo(temp->s_input);
   linearInfo(temp->hidden);
-  sigmoidInfo(temp->s_hidden);
   linearInfo(temp->output);
-  sigmoidInfo(temp->s_out);
+  leakyreluInfo(temp->s_out);
 
   // return model object
   return temp;
@@ -68,42 +62,45 @@ classifier *newModel(unsigned int input, unsigned int h_dim, unsigned int output
 
 // model feed forward function
 double *modelFeedForward(classifier *c, double *input_data) {
-  double *input_layer_outputs, *hidden_layer_outputs, *output_layer_outputs, *sigmoid_layer_outputs;
+  double *input_layer_outputs, *hidden_layer_outputs, *output_layer_outputs, *leakyrelu_response;
 
   // feed data into the network
   linearFeedIn(c->input, input_data);
-  sigmoidFeedIn(c->s_input, linearFeedForward(c->input));
-  input_layer_outputs = sigmoidFeedForward(c->s_input);
+  input_layer_outputs = linearFeedForward(c->input);
 
   // pass to the next layer
   linearFeedIn(c->hidden, input_layer_outputs);
-  sigmoidFeedIn(c->s_hidden, linearFeedForward(c->hidden));
-  hidden_layer_outputs = sigmoidFeedForward(c->s_hidden);
+  hidden_layer_outputs = linearFeedForward(c->hidden);
 
   // pass to the output layer
   linearFeedIn(c->output, hidden_layer_outputs);
-  sigmoidFeedIn(c->s_out, linearFeedForward(c->output));
-  output_layer_outputs = sigmoidFeedForward(c->s_out);
+  output_layer_outputs = linearFeedForward(c->output);
+
+  // normalize
+  leakyreluFeedIn(c->s_out, output_layer_outputs);
+  leakyrelu_response = leakyreluFeedForward(c->s_out);
 
   // return model output vector
-  return sigmoid_layer_outputs;
+  return leakyrelu_response;
 }
 
 // model gradient descent
 double *modelBackPropagate(classifier *c, double *gradient) {
-  double *input_gradient, *hidden_gradient, *output_gradient, *sigmoid_gradient;
+  double *input_gradient, *hidden_gradient, *output_gradient, *leakyrelu_gradient;
 
-  // backpropagate through the network
-  sigmoid_gradient = sigmoidBackPropagation(c->s_out, gradient);
+  // leakyrelu
+  leakyrelu_gradient = leakyreluBackPropagation(c->s_out, gradient);
 
   // output layer
-  output_gradient = linearBackPropagation(c->output, sigmoid_gradient);
+  output_gradient = linearBackPropagation(c->output, leakyrelu_gradient);
 
   // hidden layer
   hidden_gradient = linearBackPropagation(c->hidden, output_gradient);
+  free(output_gradient);
 
   // input layer
   input_gradient = linearBackPropagation(c->input, hidden_gradient);
+  free(hidden_gradient);
 
   // return gradient
   return input_gradient;
@@ -123,17 +120,9 @@ void freeModel(classifier *m) {
     printf("Freeing output layer...\n");
     linearFree(m->output);
   }
-  if (m->s_input) {
-    printf("Freeing input sigmoid layer...\n");
-    sigmoidFree(m->s_input);
-  }
-  if (m->s_hidden) {
-    printf("Freeing hidden sigmoid layer...\n");
-    sigmoidFree(m->s_hidden);
-  }
   if (m->s_out) {
-    printf("Freeing output sigmoid layer...\n");
-    sigmoidFree(m->s_out);
+    printf("Freeing output leakyrelu layer...\n");
+    leakyreluFree(m->s_out);
   }
 
   // delete model
@@ -148,12 +137,13 @@ void train(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples, u
     printf("--+== EPOCH %d STARTING... ==+--\n", e);
     double *loss_vector;
     loss_vector = (double *)malloc(sizeof(double) * OUTPUT_DIMENSIONS);
+    memset(loss_vector, 0.0f, OUTPUT_DIMENSIONS);
     for (unsigned int idx=0; idx < samples; idx++) {
       struct timeval processing_start, processing_end;
 
       gettimeofday(&processing_start, NULL);
       // prepare input vector
-      double *frame = mnistIndexData(idx, d, FALSE);
+      double *frame = mnistIndexData(idx, d, TRUE);
       if (!frame) {
         printf("Cannot allocate memory for datapoint!\n");
         return;
@@ -171,12 +161,12 @@ void train(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples, u
 
       // calculate loss
       for (unsigned int n = 0; n < OUTPUT_DIMENSIONS; n++) {
-        loss_vector[n] = labels[n] - output_vector[n];
+        loss_vector[n] = output_vector[n] - labels[n];
       }
 
       // backpropagate
       double *prev_grads = modelBackPropagate(c, loss_vector);
-      copyVectors(prev_grads, loss_vector, OUTPUT_DIMENSIONS);
+      free(prev_grads);
       gettimeofday(&processing_end, NULL);
 
       // statistics..
@@ -250,13 +240,13 @@ int main(int argc, char **argv) {
 
   // create the classifier model
   printf("Allocating a new Model...\n");
-  classifier *m = newModel((train_data->n_rows * train_data->n_cols), HIDDEN_MULTIPLIER*(train_data->n_rows * train_data->n_cols), OUTPUT_DIMENSIONS);
+  classifier *m = newModel((train_data->n_rows * train_data->n_cols), HIDDEN_DIMENSIONS, OUTPUT_DIMENSIONS);
   printf("\n");
 
   // train the model
   //train(m, train_data, train_labels, EPOCHS);
   printf("START TRAINING PHASE...\n");
-  train(m, train_data, train_labels, 20, 1);
+  train(m, train_data, train_labels, 100, 2);
   printf("\n");
 
   // free resources

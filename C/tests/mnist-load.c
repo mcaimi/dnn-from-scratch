@@ -26,8 +26,8 @@ int main(int argc, char **argv) {
   }
 
   // get a sample
-  double *sample = mnistIndexData(arc4random()%test_data->n_items, test_data, 0);
-  displaySample(sample, test_data);
+  double *sample = mnistIndexData(arc4random()%test_data->n_items, test_data, TRUE);
+  displaySample(sample, test_data, TRUE);
 
   free(sample);
   mnistFreeData(test_data);
