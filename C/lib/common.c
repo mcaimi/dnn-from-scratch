@@ -28,8 +28,9 @@ double *randomVector(unsigned int dim) {
   if (!placeholder) return NULL;
 
   // fill vector with random numbers
+  srand(time(NULL));
   for (unsigned int i=0; i < dim; i++) {
-      double pl = (double)((double)arc4random()/(double)UINT32_MAX) *2 - 1;
+      double pl = ((double)arc4random()/ARC4RANDOM_MAX);
       placeholder[i] = pl;
   }
 
@@ -56,9 +57,7 @@ double *constantVector(unsigned int dim, double const_val) {
 // copy vectors
 void copyVectors(double *src, double *dst, unsigned int size) {
   // copy values from src to dst
-  for (unsigned int i=0; i<size; i++) {
-    dst[i] = src[i];
-  }
+  memcpy(dst, src, size*sizeof(double));
 }
 
 // compare weight buffers

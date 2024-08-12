@@ -47,4 +47,4 @@ void mnistFreeData(mnist_data *);
 double *mnistIndexData(unsigned int, mnist_data *, int);
 
 // display sample
-void displaySample(double *, mnist_data *);
+void displaySample(double *, mnist_data *, int);

@@ -153,7 +153,7 @@ double *mnistIndexData(unsigned int idx, mnist_data *dataset, int normalize) {
     // cast uint8 to double
     sample = (dataset->data[idx])[pixel];
     if (normalize) {
-      datapoint[pixel] = (double)(sample)/256.0;
+      datapoint[pixel] = (double)(sample)/0xFF;
     } else {
       datapoint[pixel] = (double)(sample);
     }
@@ -164,10 +164,14 @@ double *mnistIndexData(unsigned int idx, mnist_data *dataset, int normalize) {
 }
 
 // display sample
-void displaySample(double *sample, mnist_data *dataset) {
+void displaySample(double *sample, mnist_data *dataset, int normalize) {
   for (unsigned int r=0; r<dataset->n_rows; r++) {
     for (unsigned int c=0; c<dataset->n_cols; c++) {
-      printf("%c", shades[(uint8_t)(sample[r*dataset->n_cols + c]) % (sizeof(shades)/sizeof(shades[0]))]);
+      if (normalize) {
+        printf("%c", shades[(uint8_t)(sample[r*dataset->n_cols + c] * 0xFF) % (sizeof(shades)/sizeof(shades[0]))]);
+      } else {
+        printf("%c", shades[(uint8_t)(sample[r*dataset->n_cols + c]) % (sizeof(shades)/sizeof(shades[0]))]);
+      }
     }
     printf("\n");
   }
