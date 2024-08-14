@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "common.h"
+#include "matrix.h"
 #include "linear_layer.h"
 #include "relu_layer.h"
 #include "mnist.h"
@@ -42,7 +43,7 @@ int main(int argc, char **argv) {
   unsigned int rand_item = (unsigned int)(rand()/data->n_items);
   double *input_vector = mnistIndexData(rand_item, data, TRUE);
   double target_vector[OUTPUTS];
-  memset(&target_vector, 0.0f, OUTPUTS);
+  memset(&target_vector, 0.0f, sizeof(double)*OUTPUTS);
   target_vector[labels->labels[rand_item]] = 1.0f;
 
   // input
@@ -56,30 +57,37 @@ int main(int argc, char **argv) {
   // output
   linearFeedIn(l_test_output, hidden_forward_pass);
   double *output_forward_pass = linearFeedForward(l_test_output);
+
+  // relu
   reluFeedIn(s_output, output_forward_pass);
   double *output_relu = reluFeedForward(s_output);
-  printf("Forward Pass Vector (0x%X):\n", output_relu);
-  displayWeights(&output_relu, OUTPUTS, 1);
+  printf("--> [FORWARD PASS] : Out Vector (0x%X):\n", output_relu);
+  displayWeights(&output_relu, 1, OUTPUTS);
 
   // simulate gradient computation
   double *prev_grad = constantVector(OUTPUTS, 0.0f);
   for (unsigned int n=0; n<OUTPUTS; n++){
-    double diffval = target_vector[n] - output_relu[n];
+    double diffval = output_relu[n] - target_vector[n];
     prev_grad[n] = diffval;
   }
 
   // perform backpropagation
-  // output
+  // relu
   double *so_grads = reluBackPropagation(s_output, prev_grad);
+
+  // output
   double *o_grads = linearBackPropagation(l_test_output, so_grads);
 
   // hidden
   double *h_grads = linearBackPropagation(l_test_hidden, o_grads);
+  free(o_grads);
 
   // input
   double *i_grads = linearBackPropagation(l_test_input, h_grads);
-  printf("Backpropagation Vector:\n");
-  displayWeights(&i_grads, INPUTS, 1);
+  free(h_grads);
+
+  printf("--> [BACKPROPAGATION] : Out Vector:\n");
+  displayWeights(&i_grads, 1, INPUTS);
 
   // free resources
   linearFree(l_test_input);
@@ -89,4 +97,5 @@ int main(int argc, char **argv) {
   mnistFreeData(data);
   mnistFreeIndex(labels);
   free(input_vector);
+  free(i_grads);
 }

@@ -20,7 +20,6 @@ int verifyWeights(linear *n) {
   for (unsigned int o=0; o<n->output_dimensions; o++) {
     for (unsigned int i=0; i<n->input_dimensions; i++) {
       double item = indexWeightsMatrix(n->weights_matrix, i, o);
-      printf("%d x %d\n", i, o);
       if ((item < 0) || (item > 1)) {
         printf("Fatal: item at position %d/%d is not bounded between [0,1].\n", i,o);
         return -1;
