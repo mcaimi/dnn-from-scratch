@@ -58,11 +58,7 @@ void linearFree(linear *n) {
     }
 
     // free weights matrix
-    for (unsigned int o=(n->output_dimensions -1); o > 0; o--) {
-      if (n->weights_matrix[o]) {
-        free(n->weights_matrix[o]);
-      }
-    }
+    freeMatrix(n->weights_matrix, n->input_dimensions);
 
     if (n->bias) {
       free(n->bias);
