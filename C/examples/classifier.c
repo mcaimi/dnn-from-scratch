@@ -20,10 +20,11 @@ typedef struct __classifier_model_t classifier;
 
 // parameters
 #define EPOCHS 10
-#define HIDDEN_DIMENSIONS 128
+#define INPUT_DIMENSIONS 768
+#define HIDDEN_DIMENSIONS 32
 #define OUTPUT_DIMENSIONS 10
-#define ALPHA 0.1
-#define LR 0.004
+#define ALPHA 1e-2
+#define LR 4e-6
 
 // declare model parameters
 classifier *c;
@@ -133,11 +134,11 @@ void freeModel(classifier *m) {
 // training function
 void train(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples, unsigned int epochs) {
   // train for a specific number of epochs over the training data
+  double *loss_vector;
+  loss_vector = (double *)malloc(sizeof(double) * OUTPUT_DIMENSIONS);
+  memset(loss_vector, 0.0f, sizeof(double) * OUTPUT_DIMENSIONS);
   for (unsigned int e=0; e<epochs; e++) {
     printf("--+== EPOCH %d STARTING... ==+--\n", e);
-    double *loss_vector;
-    loss_vector = (double *)malloc(sizeof(double) * OUTPUT_DIMENSIONS);
-    memset(loss_vector, 0.0f, OUTPUT_DIMENSIONS);
     for (unsigned int idx=0; idx < samples; idx++) {
       struct timeval processing_start, processing_end;
 
@@ -151,21 +152,20 @@ void train(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples, u
 
       // convert labels
       double labels[OUTPUT_DIMENSIONS];
-      memset(labels, 0.0f, OUTPUT_DIMENSIONS);
-      labels[i->labels[idx]] = 1.0f;
+      memset(labels, 0.0f, sizeof(double) * OUTPUT_DIMENSIONS);
 
       // perform feed forward operation
       double *output_vector;
       output_vector = modelFeedForward(c, frame);
-      displayWeights(&output_vector, OUTPUT_DIMENSIONS, 1);
 
       // calculate loss
       for (unsigned int n = 0; n < OUTPUT_DIMENSIONS; n++) {
-        loss_vector[n] = output_vector[n] - labels[n];
+        loss_vector[n] = (output_vector[n] - labels[n]);
       }
+      displayWeights(&loss_vector, 1, OUTPUT_DIMENSIONS);
 
       // backpropagate
-      double *prev_grads = modelBackPropagate(c, loss_vector);
+      double *prev_grads = modelBackPropagate(c, labels);
       free(prev_grads);
       gettimeofday(&processing_end, NULL);
 
@@ -177,9 +177,9 @@ void train(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples, u
       // free leftovers
       free(frame);
     }
-    free(loss_vector);
     printf("\n");
   }
+  free(loss_vector);
 }
 
 uint8_t maxidx(double *vec, uint size) {
@@ -240,13 +240,13 @@ int main(int argc, char **argv) {
 
   // create the classifier model
   printf("Allocating a new Model...\n");
-  classifier *m = newModel((train_data->n_rows * train_data->n_cols), HIDDEN_DIMENSIONS, OUTPUT_DIMENSIONS);
+  classifier *m = newModel(INPUT_DIMENSIONS, HIDDEN_DIMENSIONS, OUTPUT_DIMENSIONS);
   printf("\n");
 
   // train the model
-  //train(m, train_data, train_labels, EPOCHS);
   printf("START TRAINING PHASE...\n");
-  train(m, train_data, train_labels, 100, 2);
+  train(m, train_data, train_labels, 200, 8);
+  //train(m, train_data, train_labels, train_data->n_items, EPOCHS);
   printf("\n");
 
   // free resources
@@ -263,7 +263,7 @@ int main(int argc, char **argv) {
 
   // test model
   printf("START TEST PHASE...\n");
-  //verify(m, test_data, test_labels, 80);
+  verify(m, test_data, test_labels, 80);
   printf("\n");
 
   // free resources
