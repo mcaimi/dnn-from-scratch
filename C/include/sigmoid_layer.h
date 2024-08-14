@@ -1,4 +1,5 @@
 #include "common.h"
+#include "matrix.h"
 
 struct __sigmoid_t {
   // layer input and output dimensions

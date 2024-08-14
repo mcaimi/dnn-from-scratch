@@ -1,4 +1,5 @@
 #include "common.h"
+#include "matrix.h"
 
 struct __relu_t {
   // layer input and output dimensions

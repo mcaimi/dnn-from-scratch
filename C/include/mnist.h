@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include "matrix.h"
 
 struct __mnist_index_t {
   uint32_t magic;
