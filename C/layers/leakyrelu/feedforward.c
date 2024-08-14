@@ -10,12 +10,12 @@ void leakyreluFeedIn(leakyrelu *n, double *input) {
 double *leakyreluFeedForward(leakyrelu *n) {
   // calculate leakyrelu
   for (unsigned int o=0; o<n->output_dimensions; o++) {
-    // for x<=0 => leakyrelu == alpha * x
+    // for x<=0 => leakyrelu == -alpha * abs(x)
     // for x>0 => leakyrelu == x
     if ((n->inputs[o]) > 0) {
       n->outputs[o] = n->inputs[o];
     } else {
-      n->outputs[o] = n->alpha * fabs(n->inputs[o]);
+      n->outputs[o] = -(n->alpha * fabs(n->inputs[o]));
     }
   }
 
