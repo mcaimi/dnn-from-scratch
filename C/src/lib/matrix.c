@@ -62,8 +62,7 @@ double *randomVector(unsigned int length) {
   // fill vector with random numbers
   srand(time(NULL));
   for (unsigned int i=0; i < length; i++) {
-      double pl = ((double)arc4random()/ARC4RANDOM_MAX);
-      placeholder[i] = pl;
+      placeholder[i] = ((double)arc4random()/(double)ARC4RANDOM_MAX);
   }
 
   return placeholder;

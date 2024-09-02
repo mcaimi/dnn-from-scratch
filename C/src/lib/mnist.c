@@ -3,7 +3,8 @@
 #include <time.h>
 
 // ascii shades
-const char *shades = " .'`^\",:;Il!i><~+_-?][}{1)(\\|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@";
+#define SHADES 70
+const char shades[SHADES] = " .'`^\",:;Il!i><~+_-?][}{1)(\\|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@";
 
 // swap 32 bit integer bytes
 uint32_t byteSwap(uint32_t value) {
@@ -153,7 +154,7 @@ double *mnistIndexData(unsigned int idx, mnist_data *dataset, int normalize) {
     // cast uint8 to double
     sample = (dataset->data[idx])[pixel];
     if (normalize) {
-      datapoint[pixel] = (double)(sample)/0xFF;
+      datapoint[pixel] = (double)(sample)/(double)0xFF;
     } else {
       datapoint[pixel] = (double)(sample);
     }
@@ -168,9 +169,9 @@ void displaySample(double *sample, mnist_data *dataset, int normalize) {
   for (unsigned int r=0; r<dataset->n_rows; r++) {
     for (unsigned int c=0; c<dataset->n_cols; c++) {
       if (normalize) {
-        printf("%c", shades[(uint8_t)(sample[r*dataset->n_cols + c] * 0xFF) % (sizeof(shades)/sizeof(shades[0]))]);
+        printf("%c", shades[(uint8_t)(sample[r*dataset->n_cols + c] * 0xFF) % SHADES]);
       } else {
-        printf("%c", shades[(uint8_t)(sample[r*dataset->n_cols + c]) % (sizeof(shades)/sizeof(shades[0]))]);
+        printf("%c", shades[(uint8_t)(sample[r*dataset->n_cols + c]) % SHADES]);
       }
     }
     printf("\n");
