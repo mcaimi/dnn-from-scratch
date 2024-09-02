@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "mnist.h"
 #include "linear_layer.h"
-#include "leakyrelu_layer.h"
+#include "relu_layer.h"
 #include <sys/time.h>
 #include <assert.h>
 
@@ -9,22 +9,23 @@
 struct __classifier_model_t {
   // linear input layer
   linear *input;
+  relu *r_input;
   // hidden layer
   linear *hidden;
+  relu *r_hidden;
   // output layer
   linear *output;
-  // out leakyrelu layer
-  leakyrelu *s_out;
+  relu *r_output;
 };
 typedef struct __classifier_model_t classifier;
 
 // parameters
 #define EPOCHS 10
 #define INPUT_DIMENSIONS 768
-#define HIDDEN_DIMENSIONS 32
+#define HIDDEN_DIMENSIONS 64
 #define OUTPUT_DIMENSIONS 10
 #define ALPHA 1e-2
-#define LR 4e-6
+#define LR 4e-8
 
 // declare model parameters
 classifier *c;
@@ -46,16 +47,20 @@ classifier *newModel(unsigned int input, unsigned int h_dim, unsigned int output
 
   // add layers
   temp->input = linearCreate(input, h_dim, LR);
+  temp->r_input = reluCreate(h_dim);
   temp->hidden = linearCreate(h_dim, h_dim, LR);
+  temp->r_hidden = reluCreate(h_dim);
   temp->output = linearCreate(h_dim, output, LR);
-  temp->s_out = leakyreluCreate(output, ALPHA);
+  temp->r_output = reluCreate(output);
 
   // display network structure
   printf("Neural Network Structure:\n");
   linearInfo(temp->input);
+  reluInfo(temp->r_input);
   linearInfo(temp->hidden);
+  reluInfo(temp->r_hidden);
   linearInfo(temp->output);
-  leakyreluInfo(temp->s_out);
+  reluInfo(temp->r_output);
 
   // return model object
   return temp;
@@ -67,40 +72,36 @@ double *modelFeedForward(classifier *c, double *input_data) {
 
   // feed data into the network
   linearFeedIn(c->input, input_data);
-  input_layer_outputs = linearFeedForward(c->input);
+  reluFeedIn(c->r_input, linearFeedForward(c->input));
+  input_layer_outputs = reluFeedForward(c->r_input);
 
   // pass to the next layer
   linearFeedIn(c->hidden, input_layer_outputs);
-  hidden_layer_outputs = linearFeedForward(c->hidden);
+  reluFeedIn(c->r_hidden, linearFeedForward(c->hidden));
+  hidden_layer_outputs = reluFeedForward(c->r_hidden);
 
   // pass to the output layer
   linearFeedIn(c->output, hidden_layer_outputs);
-  output_layer_outputs = linearFeedForward(c->output);
-
-  // normalize
-  leakyreluFeedIn(c->s_out, output_layer_outputs);
-  leakyrelu_response = leakyreluFeedForward(c->s_out);
+  reluFeedIn(c->r_output, linearFeedForward(c->output));
+  output_layer_outputs = reluFeedForward(c->r_output);
 
   // return model output vector
-  return leakyrelu_response;
+  return output_layer_outputs;
 }
 
 // model gradient descent
 double *modelBackPropagate(classifier *c, double *gradient) {
-  double *input_gradient, *hidden_gradient, *output_gradient, *leakyrelu_gradient;
-
-  // leakyrelu
-  leakyrelu_gradient = leakyreluBackPropagation(c->s_out, gradient);
+  double *input_gradient, *hidden_gradient, *output_gradient;
 
   // output layer
-  output_gradient = linearBackPropagation(c->output, leakyrelu_gradient);
+  output_gradient = linearBackPropagation(c->output, reluBackPropagation(c->r_output, gradient));
 
   // hidden layer
-  hidden_gradient = linearBackPropagation(c->hidden, output_gradient);
+  hidden_gradient = linearBackPropagation(c->hidden, reluBackPropagation(c->r_hidden, output_gradient));
   free(output_gradient);
 
   // input layer
-  input_gradient = linearBackPropagation(c->input, hidden_gradient);
+  input_gradient = linearBackPropagation(c->input, reluBackPropagation(c->r_input, hidden_gradient));
   free(hidden_gradient);
 
   // return gradient
@@ -121,9 +122,17 @@ void freeModel(classifier *m) {
     printf("Freeing output layer...\n");
     linearFree(m->output);
   }
-  if (m->s_out) {
-    printf("Freeing output leakyrelu layer...\n");
-    leakyreluFree(m->s_out);
+  if (m->r_input) {
+    printf("Freeing input relu layer...\n");
+    reluFree(m->r_input);
+  }
+  if (m->r_hidden) {
+    printf("Freeing hidden relu layer...\n");
+    reluFree(m->r_hidden);
+  }
+  if (m->r_output) {
+    printf("Freeing output relu layer...\n");
+    reluFree(m->r_output);
   }
 
   // delete model
@@ -157,12 +166,13 @@ void train(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples, u
       // perform feed forward operation
       double *output_vector;
       output_vector = modelFeedForward(c, frame);
+      //displayWeights(&output_vector, 1, OUTPUT_DIMENSIONS);
 
       // calculate loss
       for (unsigned int n = 0; n < OUTPUT_DIMENSIONS; n++) {
         loss_vector[n] = (output_vector[n] - labels[n]);
       }
-      displayWeights(&loss_vector, 1, OUTPUT_DIMENSIONS);
+      //displayWeights(&loss_vector, 1, OUTPUT_DIMENSIONS);
 
       // backpropagate
       double *prev_grads = modelBackPropagate(c, labels);
@@ -171,7 +181,7 @@ void train(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples, u
 
       // statistics..
       unsigned long processing_time = (processing_end.tv_sec - processing_start.tv_sec);
-      printf("\rTraining epoch %d/%d: Iteration: %d/%d, Processing Time %d secs, ETA: %d seconds", e, epochs, idx+1, samples, processing_time, processing_time*(samples - idx));
+      printf("\rTraining epoch %d/%d: Iteration: %d/%d, Processing Time %lu secs, ETA: %lu seconds", e, epochs, idx+1, samples, processing_time, processing_time*(samples - idx));
       fflush(stdout);
 
       // free leftovers
@@ -182,7 +192,7 @@ void train(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples, u
   free(loss_vector);
 }
 
-uint8_t maxidx(double *vec, uint size) {
+uint8_t maxidx(double *vec, unsigned int size) {
   assert(size > 0);
 
   // traverse array and find the max value
@@ -221,7 +231,7 @@ void verify(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples) 
     }
 
     // statistics..
-    printf("\rIteration: %d/%d, Accuracy: %f", idx+1, samples, accuracy*100/samples);
+    printf("\rIteration: %d/%d, Accuracy: %u", idx+1, samples, accuracy*100/samples);
     fflush(stdout);
 
     // free leftovers
@@ -236,6 +246,10 @@ int main(int argc, char **argv) {
   printf("Loading Training Dataset from Disk...\n");
   train_data = mnistLoadData(train_dataset_filename);
   train_labels = mnistLoadIndex(train_labels_filename);
+  if ((train_labels == NULL) || (train_data == NULL)) {
+    printf("Cannot load data from disk\n");
+    exit(-1);
+  }
   printf("\n");
 
   // create the classifier model
@@ -245,8 +259,8 @@ int main(int argc, char **argv) {
 
   // train the model
   printf("START TRAINING PHASE...\n");
-  train(m, train_data, train_labels, 200, 8);
   //train(m, train_data, train_labels, train_data->n_items, EPOCHS);
+  train(m, train_data, train_labels, 10000, EPOCHS);
   printf("\n");
 
   // free resources
@@ -263,7 +277,7 @@ int main(int argc, char **argv) {
 
   // test model
   printf("START TEST PHASE...\n");
-  verify(m, test_data, test_labels, 80);
+  verify(m, test_data, test_labels, test_data->n_items);
   printf("\n");
 
   // free resources
