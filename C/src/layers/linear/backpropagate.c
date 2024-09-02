@@ -17,7 +17,7 @@ double *linearBackPropagation(linear *n, double *gradient) {
       for(unsigned int i=0; i<n->input_dimensions; i++){
         (n->weights_matrix[i])[o] -= (n->learning_rate * gradient[o] * n->inputs[i]);
       }
-      n->bias[o] -= n->learning_rate * gradient[o];
+      //n->bias[o] -= n->learning_rate * gradient[o];
   }
 
   // pass updated gradients to the next layer
