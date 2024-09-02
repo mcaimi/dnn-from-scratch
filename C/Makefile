@@ -1,4 +1,13 @@
-CC := gcc
+OS := $(shell uname)
+
+ifeq ($(OS), Darwin)
+	CC := clang
+	ECHO := gecho
+else
+	CC := gcc
+	ECHO := echo
+endif
+
 SRCDIR := $(shell find src -type d)
 INCLUDEDIR := include
 BINDIR := bin
@@ -22,20 +31,20 @@ examples: $(EXAMPLEOBJ) $(EXAMPLEBIN)
 tests: $(TESTOBJ) $(TESTBIN)
 
 %.o: %.c
-	@echo -e "Building Shared Object [$@]..."
+	@$(ECHO) -e "Building Shared Object [$@]..."
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 %: %.o | $(BINDIR)
-	@echo -e "Building executable [$@]..."
+	@$(ECHO) -e "Building executable [$@]..."
 	@$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $(BINDIR)/$(shell basename $@) $(OBJFILES)
 
 $(BINDIR):
 	@mkdir -p $@
 
 clean:
-	@echo -e "Cleanup binary objects..."
+	@$(ECHO) -e "Cleanup binary objects..."
 	@rm -f $(OBJFILES)
 	@rm -f $(EXAMPLEOBJ)
 	@rm -f $(TESTOBJ)
-	@echo -e "Cleaning executables..."
+	@$(ECHO) -e "Cleaning executables..."
 	@rm -Rf $(BINDIR)
