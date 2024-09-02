@@ -20,12 +20,12 @@ struct __classifier_model_t {
 typedef struct __classifier_model_t classifier;
 
 // parameters
-#define EPOCHS 10
+#define EPOCHS 5
 #define INPUT_DIMENSIONS 768
-#define HIDDEN_DIMENSIONS 64
+#define HIDDEN_DIMENSIONS 16
 #define OUTPUT_DIMENSIONS 10
 #define ALPHA 1e-2
-#define LR 4e-8
+#define LR 4e-6
 
 // declare model parameters
 classifier *c;
@@ -195,16 +195,16 @@ void train(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples, u
 uint8_t maxidx(double *vec, unsigned int size) {
   assert(size > 0);
 
+  uint8_t found = 0; // assume first value is the greatest
   // traverse array and find the max value
-  double *found = vec;
-  for (double *i = vec+1; i < (vec + size); i++) {
-    if (*i > *found) {
+  for (unsigned int i = 1; i < size; i++) {
+    if (vec[i] > vec[found]) {
       found = i;
     }
   }
 
   // return the index
-  return found - vec;
+  return found;
 }
 
 void verify(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples) {
@@ -225,13 +225,13 @@ void verify(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples) 
 
     // compare outcome
     uint8_t target_label = i->labels[idx];
-    uint8_t predicted_outcome = maxidx(output_vector, samples);
+    uint8_t predicted_outcome = maxidx(output_vector, OUTPUT_DIMENSIONS);
     if (predicted_outcome == target_label) {
       accuracy++;
     }
 
     // statistics..
-    printf("\rIteration: %d/%d, Accuracy: %u", idx+1, samples, accuracy*100/samples);
+    printf("\rIteration: %d/%d, Accuracy: %u%%", idx+1, samples, accuracy*100/samples);
     fflush(stdout);
 
     // free leftovers
@@ -259,8 +259,8 @@ int main(int argc, char **argv) {
 
   // train the model
   printf("START TRAINING PHASE...\n");
-  //train(m, train_data, train_labels, train_data->n_items, EPOCHS);
-  train(m, train_data, train_labels, 10000, EPOCHS);
+  train(m, train_data, train_labels, train_data->n_items, EPOCHS);
+  //train(m, train_data, train_labels, 10000, EPOCHS);
   printf("\n");
 
   // free resources
