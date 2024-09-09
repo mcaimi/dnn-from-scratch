@@ -35,7 +35,7 @@ tests: $(TESTOBJ) $(TESTBIN)
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 %: %.o | $(BINDIR)
-	@$(ECHO) -e "Building executable [$@]..."
+	@$(ECHO) -e "Linking executable [$@]..."
 	@$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $(BINDIR)/$(shell basename $@) $(OBJFILES)
 
 $(BINDIR):

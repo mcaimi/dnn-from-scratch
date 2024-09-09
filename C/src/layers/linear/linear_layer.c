@@ -105,9 +105,9 @@ void linearSaveCheckpoint(linear *n, char *filename) {
 
   // 2- save weights matrix
   printf("%s", "Saving Weights Matrix...");
-  for (unsigned int i=0; i < n->output_dimensions; i++) {
+  for (unsigned int i=0; i < n->input_dimensions; i++) {
     printf(" %d...", i);
-    fwrite(n->weights_matrix[i], sizeof(double), n->input_dimensions, saveFileDesc);
+    fwrite(n->weights_matrix[i], sizeof(double), n->output_dimensions, saveFileDesc);
   }
   printf("\n");
 
@@ -142,12 +142,12 @@ linear *linearLoadCheckpoint(char *filename) {
   fread(&temp->learning_rate, sizeof(double), 1, loadFileDesc);
 
   // 2 - load weights matrix values
-  printf("Loading Weights Matrix...\n");
-  temp->weights_matrix = (double **)malloc(temp->output_dimensions * sizeof(double *));
-  for (unsigned int i=0; i < temp->output_dimensions; i++) {
+  printf("Loading Weights Matrix...");
+  temp->weights_matrix = (double **)malloc(temp->input_dimensions * sizeof(double *));
+  for (unsigned int i=0; i < temp->input_dimensions; i++) {
     printf(" %d...", i);
-    temp->weights_matrix[i] = (double *)malloc(temp->input_dimensions * sizeof(double));
-    fread(temp->weights_matrix[i], sizeof(double), temp->input_dimensions, loadFileDesc);
+    temp->weights_matrix[i] = (double *)malloc(temp->output_dimensions * sizeof(double));
+    fread(temp->weights_matrix[i], sizeof(double), temp->output_dimensions, loadFileDesc);
   }
   printf("\n");
 
