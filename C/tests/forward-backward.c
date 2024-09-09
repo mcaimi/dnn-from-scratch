@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
   reluFeedIn(s_output, linearFeedForward(l_test_output));
   double *output_forward_pass = reluFeedForward(s_output);
 
-  printf("--> [FORWARD PASS] : Out Vector (0x%X):\n", (unsigned int)output_forward_pass);
+  printf("--> [FORWARD PASS] : Out Vector:\n");
   displayWeights(&output_forward_pass, 1, OUTPUTS);
 
   // simulate gradient computation
