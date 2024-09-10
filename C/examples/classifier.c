@@ -20,9 +20,9 @@ struct __classifier_model_t {
 typedef struct __classifier_model_t classifier;
 
 // parameters
-#define EPOCHS 5
+#define EPOCHS 2
 #define INPUT_DIMENSIONS 768
-#define HIDDEN_DIMENSIONS 16
+#define HIDDEN_DIMENSIONS 64
 #define OUTPUT_DIMENSIONS 10
 #define ALPHA 1e-2
 #define LR 4e-6
@@ -46,11 +46,11 @@ classifier *newModel(unsigned int input, unsigned int h_dim, unsigned int output
   classifier *temp = (struct __classifier_model_t *)malloc(sizeof(struct __classifier_model_t));
 
   // add layers
-  temp->input = linearCreate(input, h_dim, LR);
+  temp->input = linearCreate(input, h_dim, LR, FALSE);
   temp->r_input = reluCreate(h_dim);
-  temp->hidden = linearCreate(h_dim, h_dim, LR);
+  temp->hidden = linearCreate(h_dim, h_dim, LR, FALSE);
   temp->r_hidden = reluCreate(h_dim);
-  temp->output = linearCreate(h_dim, output, LR);
+  temp->output = linearCreate(h_dim, output, LR, FALSE);
   temp->r_output = reluCreate(output);
 
   // display network structure
@@ -159,29 +159,30 @@ void train(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples, u
         return;
       }
 
-      // convert labels
+      // prepare label array
       double labels[OUTPUT_DIMENSIONS];
       memset(labels, 0.0f, sizeof(double) * OUTPUT_DIMENSIONS);
+      labels[i->labels[idx]] = 1.0f;
 
       // perform feed forward operation
       double *output_vector;
       output_vector = modelFeedForward(c, frame);
-      //displayWeights(&output_vector, 1, OUTPUT_DIMENSIONS);
+      // displayWeights(&output_vector, 1, OUTPUT_DIMENSIONS);
 
       // calculate loss
       for (unsigned int n = 0; n < OUTPUT_DIMENSIONS; n++) {
         loss_vector[n] = (output_vector[n] - labels[n]);
       }
-      //displayWeights(&loss_vector, 1, OUTPUT_DIMENSIONS);
+      // displayWeights(&loss_vector, 1, OUTPUT_DIMENSIONS);
 
       // backpropagate
-      double *prev_grads = modelBackPropagate(c, labels);
+      double *prev_grads = modelBackPropagate(c, loss_vector);
       free(prev_grads);
       gettimeofday(&processing_end, NULL);
 
       // statistics..
-      unsigned long processing_time = (processing_end.tv_sec - processing_start.tv_sec);
-      printf("\rTraining epoch %d/%d: Iteration: %d/%d, Processing Time %lu secs, ETA: %lu seconds", e, epochs, idx+1, samples, processing_time, processing_time*(samples - idx));
+      unsigned long processing_time = ((processing_end.tv_sec - processing_start.tv_sec) * 1000000L + processing_end.tv_usec - processing_start.tv_usec);
+      printf("\rTraining epoch %d/%d: Iteration: %d/%d, Processing Time %lu usecs, ETA: %lu seconds", e, epochs, idx+1, samples, processing_time, processing_time*(samples - idx)/1000000L);
       fflush(stdout);
 
       // free leftovers
@@ -247,7 +248,7 @@ int main(int argc, char **argv) {
   train_data = mnistLoadData(train_dataset_filename);
   train_labels = mnistLoadIndex(train_labels_filename);
   if ((train_labels == NULL) || (train_data == NULL)) {
-    printf("Cannot load data from disk\n");
+    printf("Cannot load training data from disk\n");
     exit(-1);
   }
   printf("\n");
@@ -260,7 +261,7 @@ int main(int argc, char **argv) {
   // train the model
   printf("START TRAINING PHASE...\n");
   train(m, train_data, train_labels, train_data->n_items, EPOCHS);
-  //train(m, train_data, train_labels, 10000, EPOCHS);
+  //train(m, train_data, train_labels, 5, EPOCHS);
   printf("\n");
 
   // free resources
@@ -274,6 +275,13 @@ int main(int argc, char **argv) {
   test_data = mnistLoadData(verification_dataset_filename);
   test_labels = mnistLoadIndex(verification_labels_filename);
   printf("\n");
+  if ((test_labels == NULL) || (test_data == NULL)) {
+    printf("Freeing classifier network..\n");
+    freeModel(m);
+    printf("Cannot load verification data from disk\n");
+    exit(-1);
+  }
+  printf("\n");
 
   // test model
   printf("START TEST PHASE...\n");
@@ -281,7 +289,7 @@ int main(int argc, char **argv) {
   printf("\n");
 
   // free resources
-  printf("Training Complete. Freeing Resources...\n");
+  printf("Verification Complete. Freeing Resources...\n");
   mnistFreeData(test_data);
   mnistFreeIndex(test_labels);
   printf("\n");
