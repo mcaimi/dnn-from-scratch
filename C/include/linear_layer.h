@@ -20,7 +20,7 @@ struct __linear_t {
 typedef struct __linear_t linear;
 
 // create new linear
-linear *linearCreate(unsigned int, unsigned int, double);
+linear *linearCreate(unsigned int, unsigned int, double, unsigned int);
 // free linear
 void linearFree(linear *);
 // display info
