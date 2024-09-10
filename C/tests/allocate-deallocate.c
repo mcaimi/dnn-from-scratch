@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 
  for (unsigned int i=0; i<CASES; i++) {
    printf("-= [Linear Layer] %s [%d] =-\n", "Running case ", i);
-   l_test = (linear *)linearCreate(test_cases[i].input, test_cases[i].output, test_cases[i].lr);
+   l_test = (linear *)linearCreate(test_cases[i].input, test_cases[i].output, test_cases[i].lr, FALSE);
    linearInfo(l_test);
    if (!verifyWeights(l_test)) printf("Linear Layer Corruption.\n");
    linearSaveCheckpoint(l_test, test_cases[i].filename);

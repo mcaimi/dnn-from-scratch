@@ -32,9 +32,9 @@ int main(int argc, char **argv) {
   labels = mnistLoadIndex("train-labels-idx1-ubyte");
 
   printf("-= [Linear Layer] (inputs: %d, outputs: %d, lr: %f) =-\n", INPUTS, OUTPUTS, LR);
-  l_test_input = (linear *)linearCreate(INPUTS, HIDDEN1, LR);
-  l_test_hidden = (linear *)linearCreate(HIDDEN1, HIDDEN2, LR);
-  l_test_output = (linear *)linearCreate(HIDDEN2, OUTPUTS, LR);
+  l_test_input = (linear *)linearCreate(INPUTS, HIDDEN1, LR, FALSE);
+  l_test_hidden = (linear *)linearCreate(HIDDEN1, HIDDEN2, LR, FALSE);
+  l_test_output = (linear *)linearCreate(HIDDEN2, OUTPUTS, LR, FALSE);
   printf("-= [relu Layer] [%d] =-\n", HIDDEN1);
   r_input = (relu *)reluCreate(HIDDEN1);
   r_hidden = (relu *)reluCreate(HIDDEN2);
