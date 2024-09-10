@@ -1,10 +1,16 @@
 #include "linear_layer.h"
 
 // allocate dynamic memory for a linear layer
-int __linearMemAllocate(linear *n) {
+int __linearMemAllocate(linear *n, unsigned int zeromatrix) {
   n->inputs = (double *)malloc(n->input_dimensions * sizeof(double));
   n->outputs = (double *)malloc(n->output_dimensions * sizeof(double));
-  n->weights_matrix = randomMatrix(n->input_dimensions, n->output_dimensions);
+  if (zeromatrix) {
+    printf("%s\n", "Initializing Matrix with Zero Weights");
+    n->weights_matrix = zeroMatrix(n->input_dimensions, n->output_dimensions);
+  } else {
+    printf("%s\n", "Initializing Matrix with Random Weights");
+    n->weights_matrix = randomMatrix(n->input_dimensions, n->output_dimensions);
+  }
   if (!n->inputs || !n->outputs || !n->weights_matrix) {
     linearFree(n);
     return 1;
@@ -21,7 +27,7 @@ int __linearMemAllocate(linear *n) {
 }
 
 // create new linear layer
-linear *linearCreate(unsigned int inputs, unsigned int outputs, double learning_rate) {
+linear *linearCreate(unsigned int inputs, unsigned int outputs, double learning_rate, unsigned int zeromatrix) {
   linear *temp;
   temp = (linear *)malloc(sizeof(struct __linear_t));
   if (!temp) return NULL;
@@ -31,7 +37,7 @@ linear *linearCreate(unsigned int inputs, unsigned int outputs, double learning_
   temp->output_dimensions = outputs;
 
   // sane defaults
-  if (__linearMemAllocate(temp) > 0) {
+  if (__linearMemAllocate(temp, zeromatrix) > 0) {
     return NULL;
   }
 
