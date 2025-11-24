@@ -45,7 +45,7 @@ double **zeroMatrix(unsigned int rows, unsigned int cols) {
   double **placeholder = NULL;
 
   // allocate a matrix full of zeros
-  placeholder = constantMatrix(rows, cols, 0.0f);
+  placeholder = constantMatrix(rows, cols, 0.0);
 
   // return data
   return placeholder;
@@ -54,13 +54,19 @@ double **zeroMatrix(unsigned int rows, unsigned int cols) {
 // initialize random biases in memory
 double *randomVector(unsigned int length) {
   double *placeholder = NULL;
+  static int seeded = 0;
 
   // one-dimensional vector of double values
   placeholder = (double *)malloc(length * sizeof(double));
   if (!placeholder) return NULL;
 
+  // seed random number generator only once
+  if (!seeded) {
+    srand(time(NULL));
+    seeded = 1;
+  }
+
   // fill vector with random numbers
-  srand(time(NULL));
   for (unsigned int i=0; i < length; i++) {
       placeholder[i] = ((double)arc4random()/(double)ARC4RANDOM_MAX);
   }

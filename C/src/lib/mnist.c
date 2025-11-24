@@ -24,6 +24,9 @@ mnist_index *mnistLoadIndex(char *filename) {
     return NULL;
   }
 
+  // initialize pointer to NULL
+  temp->labels = NULL;
+
   // open file for reading
   index_descriptor = fopen(filename, "r");
   if (!index_descriptor) {
@@ -72,10 +75,14 @@ mnist_data *mnistLoadData(char *filename) {
     return NULL;
   }
 
+  // initialize pointer to NULL
+  temp->data = NULL;
+
   // open file for reading
   data_descriptor = fopen(filename, "r");
   if (!data_descriptor) {
     printf("Failed to open %s\n", filename);
+    free(temp);
     return NULL;
   }
 
@@ -118,25 +125,29 @@ mnist_data *mnistLoadData(char *filename) {
 
 // free index resources
 void mnistFreeIndex(mnist_index *item) {
-  if (item->labels) {
-    free(item->labels);
-  }
+  if (item) {
+    if (item->labels) {
+      free(item->labels);
+    }
 
-  free(item);
+    free(item);
+  }
 }
 
 // free data resources
 void mnistFreeData(mnist_data *item) {
-  if (item->data) {
-    for (unsigned int i=(item->n_items - 1); i > 0; i--) {
-      if (item->data[i]) {
-        free(item->data[i]);
+  if (item) {
+    if (item->data) {
+      for (unsigned int i = 0; i < item->n_items; i++) {
+        if (item->data[i]) {
+          free(item->data[i]);
+        }
       }
+      free(item->data);
     }
-    free(item->data);
-  }
 
-  free(item);
+    free(item);
+  }
 }
 
 // get an image from the training dataset
@@ -146,7 +157,7 @@ double *mnistIndexData(unsigned int idx, mnist_data *dataset, int normalize) {
 
   // allocate memory...
   unsigned int num_pixels = dataset->n_rows * dataset->n_cols;
-  datapoint = constantVector(num_pixels, 0.0f);
+  datapoint = constantVector(num_pixels, 0.0);
   if (!datapoint) return NULL;
 
   // index the dataset and return a datapoint
