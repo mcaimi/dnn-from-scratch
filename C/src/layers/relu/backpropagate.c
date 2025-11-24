@@ -6,11 +6,12 @@ double *reluBackPropagation(relu *n, double *gradient) {
   for (unsigned int o=0; o<n->output_dimensions; o++) {
     // relu is not differentiable in x=0. Assume f'(x)(x=0)=0
     // can be equally correct to assume f'(x=0) = 1
+    // Multiply incoming gradient by derivative of ReLU
     if ((n->outputs[o]) <= 0) {
       gradient[o] = 0;
-    } else if ((n->outputs[o]) > 0) {
-      gradient[o] = 1;
     }
+    // If output > 0, gradient passes through unchanged (multiply by 1)
+    // No need for else clause as gradient[o] already has correct value
   }
 
   // pass updated gradients to the next layer

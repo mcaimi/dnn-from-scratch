@@ -20,9 +20,9 @@ struct __classifier_model_t {
 typedef struct __classifier_model_t classifier;
 
 // parameters
-#define EPOCHS 2
+#define EPOCHS 5
 #define INPUT_DIMENSIONS 768
-#define HIDDEN_DIMENSIONS 64
+#define HIDDEN_DIMENSIONS 128
 #define OUTPUT_DIMENSIONS 10
 #define ALPHA 1e-2
 #define LR 4e-6
@@ -145,7 +145,9 @@ void train(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples, u
   // train for a specific number of epochs over the training data
   double *loss_vector;
   loss_vector = (double *)malloc(sizeof(double) * OUTPUT_DIMENSIONS);
-  memset(loss_vector, 0.0f, sizeof(double) * OUTPUT_DIMENSIONS);
+  for (unsigned int i = 0; i < OUTPUT_DIMENSIONS; i++) {
+    loss_vector[i] = 0.0;
+  }
   for (unsigned int e=0; e<epochs; e++) {
     printf("--+== EPOCH %d STARTING... ==+--\n", e);
     for (unsigned int idx=0; idx < samples; idx++) {
@@ -161,8 +163,10 @@ void train(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples, u
 
       // prepare label array
       double labels[OUTPUT_DIMENSIONS];
-      memset(labels, 0.0f, sizeof(double) * OUTPUT_DIMENSIONS);
-      labels[i->labels[idx]] = 1.0f;
+      for (unsigned int j = 0; j < OUTPUT_DIMENSIONS; j++) {
+        labels[j] = 0.0;
+      }
+      labels[i->labels[idx]] = 1.0;
 
       // perform feed forward operation
       double *output_vector;
@@ -228,6 +232,8 @@ void verify(classifier *c, mnist_data *d, mnist_index *i, unsigned int samples) 
     uint8_t target_label = i->labels[idx];
     uint8_t predicted_outcome = maxidx(output_vector, OUTPUT_DIMENSIONS);
     if (predicted_outcome == target_label) {
+      if (predicted_outcome != 0)
+        displaySample(frame, d, TRUE);
       accuracy++;
     }
 
@@ -261,7 +267,6 @@ int main(int argc, char **argv) {
   // train the model
   printf("START TRAINING PHASE...\n");
   train(m, train_data, train_labels, train_data->n_items, EPOCHS);
-  //train(m, train_data, train_labels, 5, EPOCHS);
   printf("\n");
 
   // free resources

@@ -18,6 +18,10 @@ relu *reluCreate(unsigned int dimensions) {
   temp = (relu *)malloc(sizeof(struct __relu_t));
   if (!temp) return NULL;
 
+  // initialize pointers to NULL to avoid freeing uninitialized memory on error
+  temp->inputs = NULL;
+  temp->outputs = NULL;
+
   // initialize
   temp->input_dimensions = dimensions;
   temp->output_dimensions = dimensions;

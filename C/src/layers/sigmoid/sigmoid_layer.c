@@ -18,6 +18,10 @@ sigmoid *sigmoidCreate(unsigned int dimensions) {
   temp = (sigmoid *)malloc(sizeof(struct __sigmoid_t));
   if (!temp) return NULL;
 
+  // initialize pointers to NULL to avoid freeing uninitialized memory on error
+  temp->inputs = NULL;
+  temp->outputs = NULL;
+
   // initialize
   temp->input_dimensions = dimensions;
   temp->output_dimensions = dimensions;

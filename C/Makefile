@@ -1,7 +1,7 @@
 OS := $(shell uname)
 
 ifeq ($(OS), Darwin)
-	CC := clang
+	CC := zig cc
 	ECHO := gecho
 else
 	CC := gcc

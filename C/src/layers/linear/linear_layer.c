@@ -17,7 +17,7 @@ int __linearMemAllocate(linear *n, unsigned int zeromatrix) {
   }
 
   // generate random bias vector
-  n->bias = constantVector(n->output_dimensions, 0.0f);
+  n->bias = constantVector(n->output_dimensions, 0.0);
   if (!n->bias) {
     linearFree(n);
     return 1;
@@ -31,6 +31,12 @@ linear *linearCreate(unsigned int inputs, unsigned int outputs, double learning_
   linear *temp;
   temp = (linear *)malloc(sizeof(struct __linear_t));
   if (!temp) return NULL;
+
+  // initialize pointers to NULL to avoid freeing uninitialized memory on error
+  temp->inputs = NULL;
+  temp->outputs = NULL;
+  temp->weights_matrix = NULL;
+  temp->bias = NULL;
 
   // initialize
   temp->input_dimensions = inputs;
@@ -143,6 +149,18 @@ linear *linearLoadCheckpoint(char *filename) {
   // 1 - load linear structure
   printf("Allocating and loading linear structure...\n");
   temp = (linear *)malloc(sizeof(struct __linear_t));
+  if (!temp) {
+    printf("Error allocating memory for linear structure\n");
+    fclose(loadFileDesc);
+    return NULL;
+  }
+  
+  // initialize pointers to NULL
+  temp->inputs = NULL;
+  temp->outputs = NULL;
+  temp->weights_matrix = NULL;
+  temp->bias = NULL;
+  
   fread(&temp->input_dimensions, sizeof(unsigned int), 1, loadFileDesc);
   fread(&temp->output_dimensions, sizeof(unsigned int), 1, loadFileDesc);
   fread(&temp->learning_rate, sizeof(double), 1, loadFileDesc);
