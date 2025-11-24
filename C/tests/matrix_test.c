@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
   displayWeights(rMatrix, ROWS, COLS);
 
   printf("Constant Matrix:\n");
-  double **cMatrix = constantMatrix(ROWS, COLS, 5.5f);
+  double **cMatrix = constantMatrix(ROWS, COLS, 5.5);
   displayWeights(cMatrix, ROWS, COLS);
 
   printf("Zero Matrix:\n");

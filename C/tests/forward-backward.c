@@ -31,6 +31,13 @@ int main(int argc, char **argv) {
   data = mnistLoadData("train-images-idx3-ubyte");
   labels = mnistLoadIndex("train-labels-idx1-ubyte");
 
+  if (!data || !labels) {
+    printf("Error loading MNIST data files\n");
+    if (data) mnistFreeData(data);
+    if (labels) mnistFreeIndex(labels);
+    return -1;
+  }
+
   printf("-= [Linear Layer] (inputs: %d, outputs: %d, lr: %f) =-\n", INPUTS, OUTPUTS, LR);
   l_test_input = (linear *)linearCreate(INPUTS, HIDDEN1, LR, FALSE);
   l_test_hidden = (linear *)linearCreate(HIDDEN1, HIDDEN2, LR, FALSE);
@@ -48,11 +55,13 @@ int main(int argc, char **argv) {
   reluInfo(s_output);
 
   // make a prediction
-  unsigned int rand_item = (unsigned int)(rand()/data->n_items);
+  unsigned int rand_item = (unsigned int)(rand() % data->n_items);
   double *input_vector = mnistIndexData(rand_item, data, TRUE);
   double target_vector[OUTPUTS];
-  memset(&target_vector, 0.0f, sizeof(double)*OUTPUTS);
-  target_vector[labels->labels[rand_item]] = 1.0f;
+  for (unsigned int i = 0; i < OUTPUTS; i++) {
+    target_vector[i] = 0.0;
+  }
+  target_vector[labels->labels[rand_item]] = 1.0;
 
   // input
   linearFeedIn(l_test_input, input_vector);
@@ -73,7 +82,7 @@ int main(int argc, char **argv) {
   displayWeights(&output_forward_pass, 1, OUTPUTS);
 
   // simulate gradient computation
-  double *prev_grad = constantVector(OUTPUTS, 0.0f);
+  double *prev_grad = constantVector(OUTPUTS, 0.0);
   for (unsigned int n=0; n<OUTPUTS; n++){
     double diffval = output_forward_pass[n] - target_vector[n];
     prev_grad[n] = diffval;
